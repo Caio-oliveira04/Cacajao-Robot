@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <ESP32Servo.h>
-
 // Definição dos pinos
 #define TRIG_PIN 2
 #define ECHO_PIN 15
@@ -18,7 +17,7 @@ Servo servo;
 int servoPos = 90;
 
 void setup() {
-    servo.attach(14);
+    servo.attach(13);
 
     pinMode(MOTOR_DIREITA_FRENTE, OUTPUT);
     pinMode(MOTOR_DIREITA_TRAS, OUTPUT);
