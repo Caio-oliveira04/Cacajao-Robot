@@ -1,36 +1,73 @@
+import matplotlib.pyplot as plt
 import paho.mqtt.client as mqtt
 import json
 
-# Configuração do broker MQTT
-BROKER = "localhost"  # IP do seu PC (onde o Mosquitto está rodando)
-PORT = 1883  # Porta padrão do MQTT
-TOPIC = "MPU"  # Tópico onde a ESP32 publica os dados
+# Configurações do MQTT
+mqtt_broker = "localhost"  # Endereço do broker MQTT
+mqtt_port = 1883
+mqtt_topic = "MPU"
 
-# Callback quando uma mensagem é recebida
+# Variáveis para armazenar a trajetória
+positions_x = []
+positions_y = []
+
+# Função chamada quando a conexão ao MQTT for estabelecida
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Conectado ao MQTT com sucesso!")
+        client.subscribe(mqtt_topic)
+    else:
+        print(f"Falha na conexão com código de retorno {rc}")
+
+# Função chamada quando uma mensagem é recebida no MQTT
 def on_message(client, userdata, msg):
     try:
-        payload = msg.payload.decode("utf-8")  # Decodifica a mensagem recebida
-        data = json.loads(payload)  # Converte JSON para dicionário
+        payload = json.loads(msg.payload.decode())
+        px = payload.get("Px", 0)
+        py = payload.get("Py", 0)
 
-        # Extrai os valores de aceleração X e Y
-        ax = data.get("Ax", "N/A")
-        ay = data.get("Ay", "N/A")
+        positions_x.append(px)
+        positions_y.append(py)
 
-        print(f"Aceleração X: {ax} m/s² | Aceleração Y: {ay} m/s²")
+        print(f"Posição recebida: Px = {px}, Py = {py}")
 
+        # Atualiza o gráfico
+        plt.clf()
+        plt.plot(positions_x, positions_y, marker='o', color='b', markersize=3, label="Trajetória")
+        plt.xlabel("Posição X (m)")
+        plt.ylabel("Posição Y (m)")
+        plt.title("Trajetória do MPU6050")
+        plt.legend()
+        plt.xlim(min(positions_x, default=0) - 1, max(positions_x, default=1) + 1)
+        plt.ylim(min(positions_y, default=0) - 1, max(positions_y, default=1) + 1)
+        plt.draw()
+        plt.pause(0.1)
     except Exception as e:
-        print("Erro ao processar mensagem:", e)
+        print(f"Erro ao processar a mensagem: {e}")
 
-# Configuração do cliente MQTT
+# Configura o cliente MQTT
 client = mqtt.Client()
+client.on_connect = on_connect
 client.on_message = on_message
 
-# Conecta ao broker MQTT
-client.connect(BROKER, PORT, 60)
+try:
+    client.connect(mqtt_broker, mqtt_port, 60)
+    
+    # Configuração do gráfico
+    plt.ion()
+    plt.figure(figsize=(10, 6))
+    plt.xlabel("Posição X (m)")
+    plt.ylabel("Posição Y (m)")
+    plt.title("Trajetória do MPU6050")
+    plt.show()
 
-# Inscreve-se no tópico
-client.subscribe(TOPIC)
+    # Loop MQTT que roda de forma síncrona
+    client.loop_forever()  # Aguarda e processa as mensagens de forma contínua
 
-# Mantém o cliente ouvindo mensagens
-print(f"Aguardando mensagens no tópico '{TOPIC}'...")
-client.loop_forever()
+except KeyboardInterrupt:
+    print("Interrompido pelo usuário.")
+finally:
+    client.disconnect()
+    plt.ioff()
+    plt.show()
+    
