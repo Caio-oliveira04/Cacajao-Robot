@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 # IP do ESP32 (pegue no Serial Monitor)
-ESP_IP = "ws://192.168.0.200:81/"  # Substitua pelo IP do seu ESP
+ESP_IP = "ws://192.168.151.151:81/"  # Substitua pelo IP do seu ESP
 
 # Variáveis para armazenar os dados da trajetória
 x_pos, y_pos = [0], [0]  # Posição inicial

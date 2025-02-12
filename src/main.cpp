@@ -5,8 +5,8 @@
 #include <WebSocketsServer.h>
 
 // Configurações WiFi
-const char* ssid = "CASA";
-const char* password = "14062021";
+const char* ssid = "Edge";
+const char* password = "1234567890";
 
 // Definição dos pinos I2C para ESP32
 #define MPU_SDA 21
